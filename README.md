@@ -1,6 +1,6 @@
 # react-serpentine-border
 
-A React component that draws a multi-stroke serpentine (wavy) border around sections of content. The border is drawn with SVG and responds to the layout of its children.
+A multi-stroke serpentine (wavy) border drawn with SVG. Use from vanilla JS or as a React component.
 
 ## Install
 
@@ -10,7 +10,57 @@ npm install react-serpentine-border
 
 ## Usage
 
-Wrap your content with `SerpentineBorder`. The border path is computed from the measured heights of its immediate children.
+Pass a wrapper element; the border is computed from the measured heights of its children.
+
+```js
+import { serpentineBorder } from 'react-serpentine-border'
+
+const wrapper = document.getElementById('wrapper')
+const result = serpentineBorder({ wrapperEl: wrapper })
+if (result) {
+  Object.assign(wrapper.style, result.wrapperStyle)
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  if (result.svgAttributes.class) svg.setAttribute('class', result.svgAttributes.class)
+  svg.setAttribute('viewBox', result.svgAttributes.viewBox)
+  Object.assign(svg.style, result.svgAttributes.style)
+  result.paths.forEach((p) => {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+    path.setAttribute('d', p.d)
+    path.setAttribute('stroke', p.stroke)
+    path.setAttribute('stroke-width', String(p.strokeWidth))
+    path.setAttribute('fill', p.fill)
+    svg.appendChild(path)
+  })
+  wrapper.insertBefore(svg, wrapper.firstChild)
+}
+```
+
+## API
+
+### serpentineBorder(options)
+
+Returns `wrapperStyle`, `svgAttributes` (class, viewBox, style), and `paths`. Pass either `wrapperEl` (measures from the DOM; returns `null` when DOM is unavailable, e.g. SSR) or `width` + `sectionBottomYs` (pure; never returns null).
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `wrapperEl` | `HTMLElement` | — | Measure width and section heights from this element. Omit for pure/SSR. |
+| `width` | `number` | — | Content width in px (use with `sectionBottomYs`). |
+| `sectionBottomYs` | `number[]` | — | Cumulative section bottom Y coordinates. |
+| `strokeCount` | `number` | `5` | Number of parallel strokes. |
+| `strokeWidth` | `number` | `8` | Width of each stroke in px. |
+| `radius` | `number` | `50` | Radius of the wavy turns in px. |
+| `horizontalOverlap` | `number \| 'borderWidth' \| 'halfBorderWidth'` | `0` | Extra width per side (px or keyword). |
+| `colors` | `string[]` | `['#ffffff', '#000000']` | Stroke colors (hex/CSS). |
+| `layoutMode` | `'content' \| 'border'` | `'content'` | `'content'`: layout from content; `'border'`: outer border edge defines box. |
+| `svgClassName` | `string` | `'serpentine-border-svg'` | Class applied to the SVG (and used to exclude it when measuring). |
+
+### measureSections(wrapperEl, options)
+
+Measures a wrapper and its section children; returns `{ width, sectionBottomYs }` or `null`. Options: `layoutMode`, `horizontalOverlap`, `strokeCount`, `strokeWidth`, and optional `excludeClassName` (default: same as `serpentineBorder`’s `svgClassName`). Use when you want to measure once and pass dimensions into `serpentineBorder`, or in environments without a DOM.
+
+### React: SerpentineBorder
+
+Wrap your content with the React component; it accepts the same options as `serpentineBorder` as props.
 
 ```jsx
 import { SerpentineBorder } from 'react-serpentine-border'
@@ -21,7 +71,7 @@ function App() {
       strokeCount={5}
       strokeWidth={8}
       radius={50}
-      colors={['#561d25', '#ce8147', '#ecdd7b', '#68b0ab', '#696d7d']}
+      colors={['#ffffff', '#000000']}
     >
       <section className="section">First section</section>
       <section className="section">Second section</section>
@@ -31,58 +81,29 @@ function App() {
 }
 ```
 
-## API
+## Explicit dimensions and SSR
 
-### `SerpentineBorder`
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `children` | `ReactNode` | — | Content; immediate children define segment heights for the path. |
-| `strokeCount` | `number` | `5` | Number of parallel strokes. |
-| `strokeWidth` | `number` | `8` | Width of each stroke in px. |
-| `radius` | `number` | `50` | Radius of the wavy turns in px. |
-| `horizontalOverlap` | `number \| 'borderWidth' \| 'halfBorderWidth'` | `0` | Extra width per side (px or keyword). |
-| `colors` | `string[]` | (see below) | Array of stroke colors (hex/CSS). |
-| `layoutMode` | `'content' \| 'border'` | `'content'` | `'content'`: layout from content; `'border'`: outer border edge defines box. |
-
-Default `colors`: `['#561d25', '#ce8147', '#ecdd7b', '#68b0ab', '#696d7d']`.
-
-### `DEFAULT_COLORS`
-
-Default color array export for reuse.
-
-### Vanilla core (no React)
-
-The SVG path and layout logic live in a separate vanilla JS module so you can use them without React:
-
-- **`computeSerpentineBorder(options)`** — Pure function. Given `width`, `sectionBottomYs`, and style options, returns `paths`, `viewBox`, and dimensions. Use this to render the border in any environment (custom element, Canvas, another framework).
-- **`measureSections(wrapperEl, options)`** — Measures a wrapper DOM element and its section children; returns `width` and `sectionBottomYs` for `computeSerpentineBorder`. Option `isSectionElement(el)` lets you exclude nodes (e.g. the SVG) from the section list.
-- **`getLayoutStyles(layoutMode, horizontalOverlapPx, strokeCount, strokeWidth)`** — Returns `wrapperStyle` and `svgStyle` objects for positioning.
-- **`resolveOverlapToPixels(horizontalOverlap, N, STROKE_WIDTH)`** — Converts `horizontalOverlap` to pixels.
-- **`buildPathD(...)`** — Low-level path builder (used by `computeSerpentineBorder`).
-
-Example: measure once, then compute and render SVG yourself:
+When you need to measure once and reuse, or run without a DOM (SSR, workers), use `measureSections` then call `serpentineBorder` with `width` and `sectionBottomYs`:
 
 ```js
-import { computeSerpentineBorder, measureSections, resolveOverlapToPixels } from 'react-serpentine-border'
+import { measureSections, serpentineBorder } from 'react-serpentine-border'
 
 const wrapper = document.getElementById('wrapper')
 const measured = measureSections(wrapper, {
   layoutMode: 'content',
-  horizontalOverlapPx: resolveOverlapToPixels(20, 5, 8),
-  isSectionElement: (el) => !el.classList.contains('my-border-svg'),
+  horizontalOverlap: 20,
+  strokeCount: 5,
+  strokeWidth: 8,
 })
 if (measured) {
-  const { paths, viewBox } = computeSerpentineBorder({
+  const result = serpentineBorder({
     width: measured.width,
     sectionBottomYs: measured.sectionBottomYs,
-    strokeCount: 5,
-    strokeWidth: 8,
-    radius: 50,
-    horizontalOverlapPx: resolveOverlapToPixels(20, 5, 8),
-    colors: ['#561d25', '#ce8147', '#ecdd7b', '#68b0ab', '#696d7d'],
+    horizontalOverlap: 20,
   })
-  // Render paths and viewBox into your SVG
+  if (result) {
+    // Apply result.wrapperStyle, result.svgAttributes, result.paths
+  }
 }
 ```
 
