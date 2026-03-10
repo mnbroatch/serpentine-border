@@ -10,7 +10,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'react-serpentine-border': resolve(__dirname, 'src/index.js'),
+      'serpentine-border': resolve(__dirname, 'src/index.js'),
     },
   },
 })

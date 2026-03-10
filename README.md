@@ -1,11 +1,11 @@
-# react-serpentine-border
+# serpentine-border
 
 A multi-stroke serpentine (wavy) border drawn with SVG. Use from vanilla JS or as a React component.
 
 ## Install
 
 ```bash
-npm install react-serpentine-border
+npm install serpentine-border
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install react-serpentine-border
 Pass a wrapper element; the border is computed from the measured heights of its children.
 
 ```js
-import { serpentineBorder } from 'react-serpentine-border'
+import { serpentineBorder } from 'serpentine-border'
 
 const wrapper = document.getElementById('wrapper')
 const result = serpentineBorder({ wrapperEl: wrapper })
@@ -63,7 +63,7 @@ Measures a wrapper and its section children; returns `{ width, sectionBottomYs }
 Wrap your content with the React component; it accepts the same options as `serpentineBorder` as props.
 
 ```jsx
-import { SerpentineBorder } from 'react-serpentine-border'
+import { SerpentineBorder } from 'serpentine-border'
 
 function App() {
   return (
@@ -86,7 +86,7 @@ function App() {
 When you need to measure once and reuse, or run without a DOM (SSR, workers), use `measureSections` then call `serpentineBorder` with `width` and `sectionBottomYs`:
 
 ```js
-import { measureSections, serpentineBorder } from 'react-serpentine-border'
+import { measureSections, serpentineBorder } from 'serpentine-border'
 
 const wrapper = document.getElementById('wrapper')
 const measured = measureSections(wrapper, {

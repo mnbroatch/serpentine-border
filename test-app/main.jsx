@@ -1,6 +1,6 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { SerpentineBorder } from 'react-serpentine-border'
+import { SerpentineBorder } from 'serpentine-border'
 
 function parseParams() {
   const q = new URLSearchParams(window.location.search)

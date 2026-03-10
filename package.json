@@ -1,15 +1,15 @@
 {
-  "name": "react-serpentine-border",
+  "name": "serpentine-border",
   "version": "1.0.0",
-  "description": "A React component that draws a multi-stroke serpentine (wavy) border around sections of content",
+  "description": "Multi-stroke serpentine (wavy) border SVG — vanilla JS and React",
   "type": "module",
-  "main": "./dist/react-serpentine-border.cjs",
-  "module": "./dist/react-serpentine-border.js",
+  "main": "./dist/serpentine-border.cjs",
+  "module": "./dist/serpentine-border.js",
   "types": "./index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/react-serpentine-border.js",
-      "require": "./dist/react-serpentine-border.cjs",
+      "import": "./dist/serpentine-border.js",
+      "require": "./dist/serpentine-border.cjs",
       "types": "./index.d.ts"
     }
   },
@@ -50,6 +50,6 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/react-serpentine-border.git"
+    "url": "https://github.com/your-username/serpentine-border.git"
   }
 }

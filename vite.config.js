@@ -8,7 +8,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.js'),
       name: 'ReactSerpentineBorder',
-      fileName: 'react-serpentine-border',
+      fileName: 'serpentine-border',
       formats: ['es', 'cjs'],
     },
     rollupOptions: {
