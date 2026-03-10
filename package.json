@@ -1,0 +1,55 @@
+{
+  "name": "react-serpentine-border",
+  "version": "1.0.0",
+  "description": "A React component that draws a multi-stroke serpentine (wavy) border around sections of content",
+  "type": "module",
+  "main": "./dist/react-serpentine-border.cjs",
+  "module": "./dist/react-serpentine-border.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/react-serpentine-border.js",
+      "require": "./dist/react-serpentine-border.cjs",
+      "types": "./index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "playwright test",
+    "test:debug": "DEBUG_E2E=1 playwright test",
+    "test:install-browsers": "playwright install firefox",
+    "dev:test-app": "vite --config vite.test-app.config.js",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.0",
+    "react-dom": ">=17.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "react",
+    "border",
+    "serpentine",
+    "wavy",
+    "svg",
+    "component"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/react-serpentine-border.git"
+  }
+}
