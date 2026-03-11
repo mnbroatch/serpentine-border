@@ -13,6 +13,16 @@ function resolveOverlapToPixels(horizontalOverlap, N, STROKE_WIDTH) {
   return 0
 }
 
+function styleObjectToCss(obj) {
+  return Object.entries(obj)
+    .map(([k, v]) => {
+      const key = k.replace(/([A-Z])/g, '-$1').toLowerCase()
+      const val = typeof v === 'number' && !Number.isNaN(v) ? `${v}px` : String(v)
+      return `${key}: ${val}`
+    })
+    .join('; ')
+}
+
 function buildPathD(W, Y, N, R, STROKE_WIDTH, COLORS, TOP_ARC_SHIFT, Y_OFFSET, O_TOTAL, BORDER_EXTRA) {
   const R1 = STROKE_WIDTH * (N - 1)
   const RIGHT_EXTEND = STROKE_WIDTH / 2
@@ -74,7 +84,7 @@ function buildPathD(W, Y, N, R, STROKE_WIDTH, COLORS, TOP_ARC_SHIFT, Y_OFFSET, O
     parts.push({
       d: segs.join(' '),
       stroke: COLORS[i % COLORS.length],
-      strokeWidth: STROKE_WIDTH,
+      'stroke-width': STROKE_WIDTH,
       fill: 'none',
     })
   }
@@ -88,7 +98,7 @@ const DEFAULTS = {
   strokeWidth: 8,
   radius: 50,
   horizontalOverlap: 0,
-  layoutMode: 'content',
+  layoutMode: 'border',
 }
 
 /**
@@ -110,8 +120,8 @@ const DEFAULTS = {
  * }} options
  * @returns {{
  *   wrapperStyle: Record<string, unknown>
- *   svgAttributes: { class?: string, viewBox: string, style: Record<string, unknown> }
- *   paths: Array<{ d: string, stroke: string, strokeWidth: number, fill: string }>
+ *   svgAttributes: { class?: string, viewBox: string, style: string }
+ *   paths: Array<{ d: string, stroke: string, 'stroke-width': number, fill: string }>
  * } | null}
  */
 export function serpentineBorder(options) {
@@ -156,10 +166,10 @@ export function serpentineBorder(options) {
       ? {
           boxSizing: 'border-box',
           position: 'relative',
-          marginTop: TOTAL_BORDER_WIDTH / 2,
+          marginTop: `${TOTAL_BORDER_WIDTH / 2}px`,
           ...(BORDER_EXTRA > 0 && {
-            paddingLeft: BORDER_EXTRA,
-            paddingRight: BORDER_EXTRA,
+            paddingLeft: `${BORDER_EXTRA}px`,
+            paddingRight: `${BORDER_EXTRA}px`,
           }),
         }
       : {
@@ -167,7 +177,7 @@ export function serpentineBorder(options) {
           boxSizing: 'border-box',
         }
 
-  const svgStyle =
+  const svgStyleObj =
     layoutMode === 'border'
       ? {
           position: 'absolute',
@@ -185,6 +195,7 @@ export function serpentineBorder(options) {
           top: -(TOP_OFFSET + TOP_ARC_SHIFT),
           height: `calc(100% + ${TOP_OFFSET + TOP_ARC_SHIFT}px)`,
         }
+  const svgStyle = styleObjectToCss(svgStyleObj)
 
   const paths = buildPathD(W, Y, N, R, STROKE_WIDTH, COLORS, TOP_ARC_SHIFT, Y_OFFSET, O_TOTAL, BORDER_EXTRA)
 

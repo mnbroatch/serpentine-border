@@ -1,6 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
 import { measureSections, serpentineBorder } from './serpentineCore.js'
 
+function cssStringToStyleObject(css) {
+  const obj = {}
+  if (!css || typeof css !== 'string') return obj
+  for (const decl of css.split(';')) {
+    const colon = decl.indexOf(':')
+    if (colon === -1) continue
+    const key = decl.slice(0, colon).trim().replace(/-([a-z])/g, (_, c) => c.toUpperCase())
+    const value = decl.slice(colon + 1).trim()
+    if (key) obj[key] = value
+  }
+  return obj
+}
+
+function pathAttrsForReact(attrs) {
+  return Object.fromEntries(
+    Object.entries(attrs).map(([k, v]) => [k === 'stroke-width' ? 'strokeWidth' : k, v])
+  )
+}
+
 function SerpentineBorder({
   children,
   strokeCount,
@@ -53,15 +72,17 @@ function SerpentineBorder({
       data-testid="serpentine-wrapper"
     >
       {borderData && (() => {
-        const { class: className, ...restSvgAttrs } = borderData.svgAttributes
+        const { class: className, style: styleStr, ...restSvgAttrs } = borderData.svgAttributes
+        const style = typeof styleStr === 'string' ? cssStringToStyleObject(styleStr) : styleStr
         return (
           <svg
             data-testid="serpentine-svg"
             className={className}
+            style={style}
             {...restSvgAttrs}
           >
             {borderData.paths.map((pathAttributes, i) => (
-              <path key={i} {...pathAttributes} />
+              <path key={i} {...pathAttrsForReact(pathAttributes)} />
             ))}
           </svg>
         )

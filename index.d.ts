@@ -31,19 +31,8 @@ export interface SerpentineBorderOptions {
 
 export interface SerpentineBorderResult {
   wrapperStyle: Record<string, unknown>
-  svgAttributes: { class?: string; viewBox: string; style: Record<string, unknown> }
-  paths: Array<{ d: string; stroke: string; strokeWidth: number; fill: string }>
+  svgAttributes: { class?: string; viewBox: string; style: string }
+  paths: Array<{ d: string; stroke: string; 'stroke-width': number; fill: string }>
 }
 
 export declare function serpentineBorder(options: SerpentineBorderOptions): SerpentineBorderResult | null
-
-export declare function measureSections(
-  wrapperEl: HTMLElement,
-  options: {
-    layoutMode: 'content' | 'border'
-    horizontalOverlap?: number | 'borderWidth' | 'halfBorderWidth'
-    strokeCount: number
-    strokeWidth: number
-    excludeClassName?: string
-  }
-): { width: number; sectionBottomYs: number[] } | null

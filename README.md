@@ -1,6 +1,6 @@
 # serpentine-border
 
-A multi-stroke serpentine (wavy) border drawn with SVG. Use from vanilla JS or as a React component.
+A multi-stroke serpentine (wavy) border drawn with SVG. Usable as a helper function for building the border in vanillaJS (see example) or as a React component.
 
 ## Install
 
@@ -15,24 +15,26 @@ Pass a wrapper element; the border is computed from the measured heights of its 
 ```js
 import { serpentineBorder } from 'serpentine-border'
 
-const wrapper = document.getElementById('wrapper')
-const result = serpentineBorder({ wrapperEl: wrapper })
-if (result) {
-  Object.assign(wrapper.style, result.wrapperStyle)
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  if (result.svgAttributes.class) svg.setAttribute('class', result.svgAttributes.class)
-  svg.setAttribute('viewBox', result.svgAttributes.viewBox)
-  Object.assign(svg.style, result.svgAttributes.style)
-  result.paths.forEach((p) => {
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    path.setAttribute('d', p.d)
-    path.setAttribute('stroke', p.stroke)
-    path.setAttribute('stroke-width', String(p.strokeWidth))
-    path.setAttribute('fill', p.fill)
-    svg.appendChild(path)
-  })
-  wrapper.insertBefore(svg, wrapper.firstChild)
+function setAttributes(el, attrs) {
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value == null) continue
+    el.setAttribute(key, String(value))
+  }
 }
+
+const wrapperEl = document.getElementById('wrapper')
+const { wrapperStyle, svgAttributes, paths } = serpentineBorder({ wrapperEl })
+Object.assign(wrapperEl.style, wrapperStyle)
+
+const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+setAttributes(svg, svgAttributes)
+
+for (const p of paths) {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  setAttributes(path, p)
+  svg.appendChild(path)
+}
+wrapperEl.insertBefore(svg, wrapperEl.firstChild)
 ```
 
 ## API
@@ -51,12 +53,10 @@ Returns `wrapperStyle`, `svgAttributes` (class, viewBox, style), and `paths`. Pa
 | `radius` | `number` | `50` | Radius of the wavy turns in px. |
 | `horizontalOverlap` | `number \| 'borderWidth' \| 'halfBorderWidth'` | `0` | Extra width per side (px or keyword). |
 | `colors` | `string[]` | `['#ffffff', '#000000']` | Stroke colors (hex/CSS). |
-| `layoutMode` | `'content' \| 'border'` | `'content'` | `'content'`: layout from content; `'border'`: outer border edge defines box. |
+| `layoutMode` | `'content' \| 'border'` | `'border'` | See note below. |
 | `svgClassName` | `string` | `'serpentine-border-svg'` | Class applied to the SVG (and used to exclude it when measuring). |
 
-### measureSections(wrapperEl, options)
-
-Measures a wrapper and its section children; returns `{ width, sectionBottomYs }` or `null`. Options: `layoutMode`, `horizontalOverlap`, `strokeCount`, `strokeWidth`, and optional `excludeClassName` (default: same as `serpentineBorder`’s `svgClassName`). Use when you want to measure once and pass dimensions into `serpentineBorder`, or in environments without a DOM.
+**Layout mode:** In some instances, you may want the border to be an overlay that doesn't affect flow and content size. With `'content'`, the wrapper’s size follows its content and the border is drawn around it (the SVG can extend outside). With `'border'`, the outer edge of the border defines the box: the full border fits inside the layout, and content sits inside that box. This mode avoids the border spilling out and overlapping neighboring elements.
 
 ### React: SerpentineBorder
 
@@ -81,31 +81,13 @@ function App() {
 }
 ```
 
-## Explicit dimensions and SSR
+## SSR
 
-When you need to measure once and reuse, or run without a DOM (SSR, workers), use `measureSections` then call `serpentineBorder` with `width` and `sectionBottomYs`:
+When DOM is unavailable (e.g. server-side), pass `width` and `sectionBottomYs` into `serpentineBorder({ width, sectionBottomYs, ... })` instead of `wrapperEl`.
 
-```js
-import { measureSections, serpentineBorder } from 'serpentine-border'
+## Tests
 
-const wrapper = document.getElementById('wrapper')
-const measured = measureSections(wrapper, {
-  layoutMode: 'content',
-  horizontalOverlap: 20,
-  strokeCount: 5,
-  strokeWidth: 8,
-})
-if (measured) {
-  const result = serpentineBorder({
-    width: measured.width,
-    sectionBottomYs: measured.sectionBottomYs,
-    horizontalOverlap: 20,
-  })
-  if (result) {
-    // Apply result.wrapperStyle, result.svgAttributes, result.paths
-  }
-}
-```
+Run `npm run test` for e2e tests. If Playwright browsers are not installed yet, run `npm run test:install-browsers` first. On Linux you may also need to install system dependencies (e.g. `sudo npx playwright install-deps`).
 
 ## License
 

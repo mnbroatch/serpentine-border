@@ -5,7 +5,7 @@ import { SerpentineBorder } from 'serpentine-border'
 function parseParams() {
   const q = new URLSearchParams(window.location.search)
   return {
-    layoutMode: (q.get('layout') || 'content'),
+    layoutMode: q.get('layout') || 'border',
     horizontalOverlap: Number(q.get('overlap')) || 20,
     strokeWidth: Number(q.get('strokeWidth')) || 8,
     strokeCount: Number(q.get('strokeCount')) || 5,
@@ -16,7 +16,7 @@ function parseParams() {
 function Fixture() {
   const params = parseParams()
   return (
-    <div className="fixture" data-testid="fixture">
+    <div className="fixture" data-testid="fixture" data-layout-mode={params.layoutMode}>
       <SerpentineBorder
         layoutMode={params.layoutMode}
         horizontalOverlap={params.horizontalOverlap}

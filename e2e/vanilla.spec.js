@@ -1,4 +1,4 @@
-/** SerpentineBorder e2e tests. */
+/** Vanilla JS serpentineBorder e2e tests (mirrors SerpentineBorder.spec.js). */
 import { test, expect } from '@playwright/test'
 
 const BASE_URL = 'http://localhost:5174'
@@ -27,10 +27,14 @@ function queryString(params) {
   return q.toString()
 }
 
+function fullUrl(path, params) {
+  return `${BASE_URL}${path}?${queryString(params)}`
+}
+
 for (const params of PARAM_SETS) {
-  test.describe(`SerpentineBorder (${params.label}: strokeWidth=${params.strokeWidth}, strokeCount=${params.strokeCount}, radius=${params.radius})`, () => {
+  test.describe(`vanilla (${params.label}: strokeWidth=${params.strokeWidth}, strokeCount=${params.strokeCount}, radius=${params.radius})`, () => {
     test('1a. vertical segments overlap content side edges (content mode)', async ({ page }) => {
-      await page.goto(`${BASE_URL}/?${queryString({ ...params, layoutMode: 'content' })}`, { waitUntil: 'networkidle' })
+      await page.goto(fullUrl('/vanilla.html', { ...params, layoutMode: 'content' }), { waitUntil: 'networkidle' })
       await expect(page.getByTestId('fixture')).toHaveAttribute('data-layout-mode', 'content')
       await expect(page.getByTestId('fixture')).toBeVisible()
       const wrapper = page.getByTestId('serpentine-wrapper')
@@ -53,19 +57,18 @@ for (const params of PARAM_SETS) {
     })
 
     test('1b. vertical segments (border mode)', async ({ page }) => {
-      await page.goto(`${BASE_URL}/?${queryString({ ...params, layoutMode: 'border' })}`, { waitUntil: 'networkidle' })
+      await page.goto(fullUrl('/vanilla.html', { ...params, layoutMode: 'border' }), { waitUntil: 'networkidle' })
       await expect(page.getByTestId('fixture')).toBeVisible()
       const wrapper = page.getByTestId('serpentine-wrapper')
       const svg = page.getByTestId('serpentine-svg')
       await expect(wrapper).toBeVisible()
       await expect(svg).toBeVisible()
-
       const leftPx = await svg.evaluate((el) => parseFloat(getComputedStyle(el).left) || 0)
       expect(withinTolerance(leftPx, 0), `svg left: ${leftPx}, expected ~0 in border mode`).toBe(true)
     })
 
     test('2. horizontal segments overlap space between children (content mode)', async ({ page }) => {
-      await page.goto(`${BASE_URL}/?${queryString({ ...params, layoutMode: 'content' })}`, { waitUntil: 'networkidle' })
+      await page.goto(fullUrl('/vanilla.html', { ...params, layoutMode: 'content' }), { waitUntil: 'networkidle' })
       await expect(page.getByTestId('fixture')).toBeVisible()
       const wrapper = page.getByTestId('serpentine-wrapper')
       const section0 = page.getByTestId('section-0')
@@ -80,14 +83,12 @@ for (const params of PARAM_SETS) {
       expect(wrapperRect).toBeTruthy()
       expect(r0).toBeTruthy()
       expect(r1).toBeTruthy()
-      // Path d is in SVG/viewBox coordinates; first junction is at SECTION_HEIGHT (150)
       const junctionY = SECTION_HEIGHT
       const gapMin = junctionY - 60
       const gapMax = junctionY + 60
 
       const pathD = await page.locator('.serpentine-border-svg path').first().getAttribute('d')
       expect(pathD).toBeTruthy()
-      // Path d: M x y, L x y, A rx ry 0 0 0 x y — extract y from L/M (2nd number) and from A (7th number)
       const yFromLM = pathD.match(/[LM]\s+[-.\d]+\s+([-.\d]+)/g)
       const yFromA = pathD.match(/A\s+[-.\d]+\s+[-.\d]+(?:\s+[-.\d]+){4}\s+[-.\d]+\s+([-.\d]+)/g)
       const yCoords = [
@@ -99,7 +100,7 @@ for (const params of PARAM_SETS) {
     })
 
     test('2b. horizontal segments overlap (border mode)', async ({ page }) => {
-      await page.goto(`${BASE_URL}/?${queryString({ ...params, layoutMode: 'border' })}`, { waitUntil: 'networkidle' })
+      await page.goto(fullUrl('/vanilla.html', { ...params, layoutMode: 'border' }), { waitUntil: 'networkidle' })
       await expect(page.getByTestId('fixture')).toBeVisible()
       const pathD = await page.locator('.serpentine-border-svg path').first().getAttribute('d')
       expect(pathD).toBeTruthy()
@@ -117,7 +118,7 @@ for (const params of PARAM_SETS) {
     })
 
     test('3. content layout mode: same space as content', async ({ page }) => {
-      await page.goto(`${BASE_URL}/?${queryString({ ...params, layoutMode: 'content' })}`, { waitUntil: 'networkidle' })
+      await page.goto(fullUrl('/vanilla.html', { ...params, layoutMode: 'content' }), { waitUntil: 'networkidle' })
       await expect(page.getByTestId('fixture')).toBeVisible()
       const wrapper = page.getByTestId('serpentine-wrapper')
       await expect(wrapper).toBeVisible()
@@ -143,7 +144,8 @@ for (const params of PARAM_SETS) {
     })
 
     test('4. border layout mode: correct amount of space', async ({ page }) => {
-      await page.goto(`${BASE_URL}/?${queryString({ ...params, layoutMode: 'border' })}`, { waitUntil: 'networkidle' })
+      await page.goto(fullUrl('/vanilla.html', { ...params, layoutMode: 'border' }), { waitUntil: 'networkidle' })
+      await expect(page.getByTestId('fixture')).toHaveAttribute('data-layout-mode', 'border')
       await expect(page.getByTestId('fixture')).toBeVisible()
       const wrapper = page.getByTestId('serpentine-wrapper')
       await expect(wrapper).toBeVisible()
@@ -157,7 +159,6 @@ for (const params of PARAM_SETS) {
       expect(withinTolerance(marginTop, expectedMarginTop)).toBe(true)
 
       const wrapperRect = await wrapper.boundingBox()
-      // In border mode wrapper has box-sizing: border-box and padding; it stays FIXTURE_WIDTH (content + padding inside)
       const expectedWidth = FIXTURE_WIDTH
       expect(withinTolerance(wrapperRect.width, expectedWidth), `wrapper width: ${wrapperRect.width}, expected: ${expectedWidth} ± ${TOLERANCE}`).toBe(true)
     })
