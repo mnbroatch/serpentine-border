@@ -161,5 +161,32 @@ for (const params of PARAM_SETS) {
       const expectedWidth = FIXTURE_WIDTH
       expect(withinTolerance(wrapperRect.width, expectedWidth), `wrapper width: ${wrapperRect.width}, expected: ${expectedWidth} ± ${TOLERANCE}`).toBe(true)
     })
+
+    test('5. negative horizontal overflow: border stays horizontally centered (border mode)', async ({ page }) => {
+      const negativeOverflow = -20
+      await page.goto(`${BASE_URL}/?${queryString({ ...params, layoutMode: 'border', horizontalOverflow: negativeOverflow })}`, { waitUntil: 'networkidle' })
+      await expect(page.getByTestId('fixture')).toBeVisible()
+      const wrapper = page.getByTestId('serpentine-wrapper')
+      const svg = page.getByTestId('serpentine-svg')
+      await expect(wrapper).toBeVisible()
+      await expect(svg).toBeVisible()
+
+      const wrapperRect = await wrapper.boundingBox()
+      const svgRect = await svg.boundingBox()
+      expect(wrapperRect).toBeTruthy()
+      expect(svgRect).toBeTruthy()
+
+      const gapLeft = svgRect.x - wrapperRect.x
+      const gapRight = wrapperRect.x + wrapperRect.width - (svgRect.x + svgRect.width)
+      expect(withinTolerance(gapLeft, -negativeOverflow), `left gap: ${gapLeft}, expected ~${-negativeOverflow}`).toBe(true)
+      expect(withinTolerance(gapRight, -negativeOverflow), `right gap: ${gapRight}, expected ~${-negativeOverflow}`).toBe(true)
+      expect(withinTolerance(gapLeft, gapRight), `border should be centered: gapLeft=${gapLeft}, gapRight=${gapRight}`).toBe(true)
+
+      // ViewBox must include the full path so the right side is not cropped (minX = -BORDER_EXTRA for negative overflow)
+      const viewBox = await svg.getAttribute('viewBox')
+      expect(viewBox).toBeTruthy()
+      const [minX] = viewBox.split(' ').map(Number)
+      expect(withinTolerance(minX, -negativeOverflow), `viewBox minX should be ${-negativeOverflow} so path is not clipped on the right, got ${minX}`).toBe(true)
+    })
   })
 }
