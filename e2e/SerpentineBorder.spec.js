@@ -162,7 +162,7 @@ for (const params of PARAM_SETS) {
       expect(withinTolerance(wrapperRect.width, expectedWidth), `wrapper width: ${wrapperRect.width}, expected: ${expectedWidth} ± ${TOLERANCE}`).toBe(true)
     })
 
-    test('5. negative horizontal overflow: border centered, vertical size unchanged (border mode)', async ({ page }) => {
+    test('5. negative horizontal overflow: border mode acts like content mode horizontally, top still takes space (border mode)', async ({ page }) => {
       const negativeOverflow = -20
       await page.goto(`${BASE_URL}/?${queryString({ ...params, layoutMode: 'border', horizontalOverflow: negativeOverflow })}`, { waitUntil: 'networkidle' })
       await expect(page.getByTestId('fixture')).toBeVisible()
@@ -176,19 +176,23 @@ for (const params of PARAM_SETS) {
       expect(wrapperRect).toBeTruthy()
       expect(svgRect).toBeTruthy()
 
-      // SVG stays full width so vertical scale is unchanged (no uniform shrink from a narrower SVG)
-      expect(withinTolerance(svgRect.width, wrapperRect.width), `svg should be full width: ${svgRect.width} vs wrapper ${wrapperRect.width}`).toBe(true)
+      // Horizontally like content mode: SVG narrower and centered
       const gapLeft = svgRect.x - wrapperRect.x
       const gapRight = wrapperRect.x + wrapperRect.width - (svgRect.x + svgRect.width)
-      expect(withinTolerance(gapLeft, 0), `svg left gap should be 0, got ${gapLeft}`).toBe(true)
-      expect(withinTolerance(gapRight, 0), `svg right gap should be 0, got ${gapRight}`).toBe(true)
+      expect(withinTolerance(gapLeft, -negativeOverflow), `left gap: ${gapLeft}, expected ~${-negativeOverflow}`).toBe(true)
+      expect(withinTolerance(gapRight, -negativeOverflow), `right gap: ${gapRight}, expected ~${-negativeOverflow}`).toBe(true)
+      expect(withinTolerance(gapLeft, gapRight), `border centered: gapLeft=${gapLeft}, gapRight=${gapRight}`).toBe(true)
 
-      // ViewBox uses full content width (minX=0, width=W) so the path appears inset and is not cropped
+      // ViewBox matches path (minX = -BORDER_EXTRA), no squishing
       const viewBox = await svg.getAttribute('viewBox')
       expect(viewBox).toBeTruthy()
-      const [minX, , viewBoxWidth] = viewBox.split(' ').map(Number)
-      expect(withinTolerance(minX, 0), `viewBox minX should be 0 for negative overflow, got ${minX}`).toBe(true)
-      expect(viewBoxWidth > wrapperRect.width, `viewBox width ${viewBoxWidth} should be > wrapper ${wrapperRect.width} so path appears inset`).toBe(true)
+      const [minX] = viewBox.split(' ').map(Number)
+      expect(withinTolerance(minX, -negativeOverflow), `viewBox minX should be ${-negativeOverflow}, got ${minX}`).toBe(true)
+
+      // Vertically: top of border still takes space (marginTop)
+      const marginTop = await wrapper.evaluate((el) => parseFloat(getComputedStyle(el).marginTop) || 0)
+      const expectedMarginTop = (params.strokeCount * params.strokeWidth) / 2
+      expect(withinTolerance(marginTop, expectedMarginTop), `marginTop: ${marginTop}, expected ~${expectedMarginTop}`).toBe(true)
     })
   })
 }
