@@ -25,7 +25,7 @@ function SerpentineBorder({
   strokeCount,
   strokeWidth,
   radius,
-  horizontalOverlap,
+  horizontalOverflow,
   colors,
   layoutMode,
 }) {
@@ -39,7 +39,7 @@ function SerpentineBorder({
     const measure = () => {
       const measured = measureSections(wrapper, {
         layoutMode,
-        horizontalOverlap,
+        horizontalOverflow,
         strokeCount,
         strokeWidth,
       })
@@ -51,7 +51,7 @@ function SerpentineBorder({
         strokeCount,
         strokeWidth,
         radius,
-        horizontalOverlap,
+        horizontalOverflow,
         colors,
         layoutMode,
       })
@@ -62,7 +62,7 @@ function SerpentineBorder({
     const ro = new ResizeObserver(measure)
     ro.observe(wrapper)
     return () => ro.disconnect()
-  }, [strokeCount, strokeWidth, radius, horizontalOverlap, colors, layoutMode])
+  }, [strokeCount, strokeWidth, radius, horizontalOverflow, colors, layoutMode])
 
   return (
     <div

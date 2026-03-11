@@ -23,8 +23,11 @@ function setAttributes(el, attrs) {
 }
 
 const wrapperEl = document.getElementById('wrapper')
-const { wrapperStyle, svgAttributes, paths } = serpentineBorder({ wrapperEl })
+const result = serpentineBorder({ wrapperEl })
+if (!result) return
+const { wrapperStyle, svgAttributes, paths, sectionsPadding } = result
 Object.assign(wrapperEl.style, wrapperStyle)
+// Optionally apply sectionsPadding[i] to each section so content does not overlap the border
 
 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
 setAttributes(svg, svgAttributes)
@@ -41,7 +44,7 @@ wrapperEl.insertBefore(svg, wrapperEl.firstChild)
 
 ### serpentineBorder(options)
 
-Returns `wrapperStyle`, `svgAttributes` (class, viewBox, style), and `paths`. Pass either `wrapperEl` (measures from the DOM; returns `null` when DOM is unavailable, e.g. SSR) or `width` + `sectionBottomYs` (pure; never returns null).
+Returns `wrapperStyle`, `svgAttributes` (class, viewBox, style), `paths`, and `sectionsPadding` (array of `{ top, right, bottom, left }` padding in px for each section so content does not overlap the border). Pass either `wrapperEl` (measures from the DOM; returns `null` when DOM is unavailable, e.g. SSR) or `width` + `sectionBottomYs` (pure; never returns null).
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -51,7 +54,7 @@ Returns `wrapperStyle`, `svgAttributes` (class, viewBox, style), and `paths`. Pa
 | `strokeCount` | `number` | `5` | Number of parallel strokes. |
 | `strokeWidth` | `number` | `8` | Width of each stroke in px. |
 | `radius` | `number` | `50` | Radius of the wavy turns in px. |
-| `horizontalOverlap` | `number \| 'borderWidth' \| 'halfBorderWidth'` | `0` | Extra width per side (px or keyword). |
+| `horizontalOverflow` | `number \| 'borderWidth' \| 'halfBorderWidth'` | `0` | Horizontal overflow per side so the border extends past content (px or keyword). |
 | `colors` | `string[]` | `['#ffffff', '#000000']` | Stroke colors (hex/CSS). |
 | `layoutMode` | `'content' \| 'border'` | `'border'` | See note below. |
 | `svgClassName` | `string` | `'serpentine-border-svg'` | Class applied to the SVG (and used to exclude it when measuring). |

@@ -5,11 +5,11 @@
 
 import { DEFAULT_COLORS } from './constants.js'
 
-function resolveOverlapToPixels(horizontalOverlap, N, STROKE_WIDTH) {
-  if (typeof horizontalOverlap === 'number') return horizontalOverlap
+function resolveOverflowToPixels(horizontalOverflow, N, STROKE_WIDTH) {
+  if (typeof horizontalOverflow === 'number') return horizontalOverflow
   const totalBorderWidth = N * STROKE_WIDTH
-  if (horizontalOverlap === 'borderWidth') return totalBorderWidth
-  if (horizontalOverlap === 'halfBorderWidth') return totalBorderWidth / 2
+  if (horizontalOverflow === 'borderWidth') return totalBorderWidth
+  if (horizontalOverflow === 'halfBorderWidth') return totalBorderWidth / 2
   return 0
 }
 
@@ -97,7 +97,7 @@ const DEFAULTS = {
   strokeCount: 5,
   strokeWidth: 8,
   radius: 50,
-  horizontalOverlap: 0,
+  horizontalOverflow: 0,
   layoutMode: 'border',
 }
 
@@ -113,7 +113,7 @@ const DEFAULTS = {
  *   strokeCount?: number
  *   strokeWidth?: number
  *   radius?: number
- *   horizontalOverlap?: number | 'borderWidth' | 'halfBorderWidth'
+ *   horizontalOverflow?: number | 'borderWidth' | 'halfBorderWidth'
  *   colors?: string[]
  *   layoutMode?: 'content' | 'border'
  *   svgClassName?: string
@@ -122,13 +122,14 @@ const DEFAULTS = {
  *   wrapperStyle: Record<string, unknown>
  *   svgAttributes: { class?: string, viewBox: string, style: string }
  *   paths: Array<{ d: string, stroke: string, 'stroke-width': number, fill: string }>
+ *   sectionsPadding: Array<{ top: number, right: number, bottom: number, left: number }>
  * } | null}
  */
 export function serpentineBorder(options) {
   const N = options.strokeCount ?? DEFAULTS.strokeCount
   const STROKE_WIDTH = options.strokeWidth ?? DEFAULTS.strokeWidth
   const R = options.radius ?? DEFAULTS.radius
-  const horizontalOverlap = options.horizontalOverlap ?? DEFAULTS.horizontalOverlap
+  const horizontalOverflow = options.horizontalOverflow ?? DEFAULTS.horizontalOverflow
   const COLORS = options.colors ?? DEFAULT_COLORS
   const layoutMode = options.layoutMode ?? DEFAULTS.layoutMode
   const svgClassName = options.svgClassName ?? DEFAULT_SVG_CLASS
@@ -140,7 +141,7 @@ export function serpentineBorder(options) {
     if (!hasDOM) return null
     const measured = measureSections(wrapperEl, {
       layoutMode,
-      horizontalOverlap,
+      horizontalOverflow,
       strokeCount: N,
       strokeWidth: STROKE_WIDTH,
       excludeClassName: svgClassName,
@@ -154,7 +155,7 @@ export function serpentineBorder(options) {
     Y = options.sectionBottomYs
   }
 
-  const BORDER_EXTRA = resolveOverlapToPixels(horizontalOverlap, N, STROKE_WIDTH)
+  const BORDER_EXTRA = resolveOverflowToPixels(horizontalOverflow, N, STROKE_WIDTH)
   const O_TOTAL = (N - 1) * STROKE_WIDTH
   const TOTAL_BORDER_WIDTH = N * STROKE_WIDTH
   const TOP_OFFSET = 2 * STROKE_WIDTH
@@ -206,6 +207,18 @@ export function serpentineBorder(options) {
   const viewBoxMinY = -STROKE_WIDTH * 2 - TOP_ARC_SHIFT
   const viewBoxStr = `${viewBoxMinX} ${viewBoxMinY} ${totalWidth} ${viewBoxHeight}`
 
+  const n = Y.length - 1
+  const halfBorderWidth = TOTAL_BORDER_WIDTH / 2
+  const insetSide = TOTAL_BORDER_WIDTH - BORDER_EXTRA
+  const sectionsPadding = []
+  for (let i = 0; i < n; i++) {
+    const top = halfBorderWidth
+    const bottom = i === n - 1 ? 0 : halfBorderWidth
+    const left = i % 2 === 0 ? insetSide : 0
+    const right = i % 2 === 0 ? 0 : insetSide
+    sectionsPadding.push({ top, right, bottom, left })
+  }
+
   return {
     wrapperStyle,
     svgAttributes: {
@@ -214,18 +227,19 @@ export function serpentineBorder(options) {
       style: svgStyle,
     },
     paths,
+    sectionsPadding,
   }
 }
 
 /**
  * Measure wrapper and section elements to get width and section bottom Ys.
  * Children with the excludeClassName (default: same class used on the SVG by serpentineBorder) are excluded.
- * horizontalOverlap is resolved to pixels using strokeCount and strokeWidth.
+ * horizontalOverflow is resolved to pixels using strokeCount and strokeWidth.
  *
  * @param {HTMLElement} wrapperEl
  * @param {{
  *   layoutMode: 'content' | 'border'
- *   horizontalOverlap?: number | 'borderWidth' | 'halfBorderWidth'
+ *   horizontalOverflow?: number | 'borderWidth' | 'halfBorderWidth'
  *   strokeCount: number
  *   strokeWidth: number
  *   excludeClassName?: string
@@ -233,8 +247,8 @@ export function serpentineBorder(options) {
  * @returns {{ width: number, sectionBottomYs: number[] } | null}
  */
 export function measureSections(wrapperEl, options) {
-  const { layoutMode, horizontalOverlap = 0, strokeCount, strokeWidth, excludeClassName = DEFAULT_SVG_CLASS } = options
-  const BORDER_EXTRA = resolveOverlapToPixels(horizontalOverlap, strokeCount, strokeWidth)
+  const { layoutMode, horizontalOverflow = 0, strokeCount, strokeWidth, excludeClassName = DEFAULT_SVG_CLASS } = options
+  const BORDER_EXTRA = resolveOverflowToPixels(horizontalOverflow, strokeCount, strokeWidth)
   if (!wrapperEl) return null
 
   const sectionEls = excludeClassName

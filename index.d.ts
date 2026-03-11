@@ -5,7 +5,7 @@ export interface SerpentineBorderProps {
   strokeCount?: number
   strokeWidth?: number
   radius?: number
-  horizontalOverlap?: number | 'borderWidth' | 'halfBorderWidth'
+  horizontalOverflow?: number | 'borderWidth' | 'halfBorderWidth'
   colors?: string[]
   layoutMode?: 'content' | 'border'
 }
@@ -23,16 +23,24 @@ export interface SerpentineBorderOptions {
   strokeCount?: number
   strokeWidth?: number
   radius?: number
-  horizontalOverlap?: number | 'borderWidth' | 'halfBorderWidth'
+  horizontalOverflow?: number | 'borderWidth' | 'halfBorderWidth'
   colors?: string[]
   layoutMode?: 'content' | 'border'
   svgClassName?: string
+}
+
+export interface SectionPadding {
+  top: number
+  right: number
+  bottom: number
+  left: number
 }
 
 export interface SerpentineBorderResult {
   wrapperStyle: Record<string, unknown>
   svgAttributes: { class?: string; viewBox: string; style: string }
   paths: Array<{ d: string; stroke: string; 'stroke-width': number; fill: string }>
+  sectionsPadding: SectionPadding[]
 }
 
 export declare function serpentineBorder(options: SerpentineBorderOptions): SerpentineBorderResult | null

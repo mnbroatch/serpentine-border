@@ -6,7 +6,7 @@ function parseParams() {
   const q = new URLSearchParams(window.location.search)
   return {
     layoutMode: q.get('layout') || 'border',
-    horizontalOverlap: Number(q.get('overlap')) || 20,
+    horizontalOverflow: Number(q.get('overflow')) || 20,
     strokeWidth: Number(q.get('strokeWidth')) || 8,
     strokeCount: Number(q.get('strokeCount')) || 5,
     radius: Number(q.get('radius')) || 50,
@@ -19,7 +19,7 @@ function Fixture() {
     <div className="fixture" data-testid="fixture" data-layout-mode={params.layoutMode}>
       <SerpentineBorder
         layoutMode={params.layoutMode}
-        horizontalOverlap={params.horizontalOverlap}
+        horizontalOverflow={params.horizontalOverflow}
         strokeWidth={params.strokeWidth}
         strokeCount={params.strokeCount}
         radius={params.radius}

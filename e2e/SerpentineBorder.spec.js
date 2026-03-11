@@ -13,14 +13,14 @@ const PARAM_SETS = [
   { strokeWidth: 6, strokeCount: 4, radius: 30, label: 'Set B' },
 ]
 
-const HORIZONTAL_OVERLAP = 20
+const HORIZONTAL_OVERFLOW = 20
 const FIXTURE_WIDTH = 400
 const SECTION_HEIGHT = 150
 
 function queryString(params) {
   const q = new URLSearchParams()
   if (params.layoutMode != null) q.set('layout', params.layoutMode)
-  q.set('overlap', String(params.horizontalOverlap ?? HORIZONTAL_OVERLAP))
+  q.set('overflow', String(params.horizontalOverflow ?? HORIZONTAL_OVERFLOW))
   q.set('strokeWidth', String(params.strokeWidth))
   q.set('strokeCount', String(params.strokeCount))
   q.set('radius', String(params.radius))
@@ -39,7 +39,7 @@ for (const params of PARAM_SETS) {
       await expect(svg).toBeVisible()
 
       const leftPx = await svg.evaluate((el) => parseFloat(getComputedStyle(el).left) || 0)
-      expect(withinTolerance(leftPx, -HORIZONTAL_OVERLAP), `svg left: ${leftPx}, expected ~${-HORIZONTAL_OVERLAP}`).toBe(true)
+      expect(withinTolerance(leftPx, -HORIZONTAL_OVERFLOW), `svg left: ${leftPx}, expected ~${-HORIZONTAL_OVERFLOW}`).toBe(true)
 
       const wrapperRect = await wrapper.boundingBox()
       const svgRect = await svg.boundingBox()
@@ -48,8 +48,8 @@ for (const params of PARAM_SETS) {
       const overflowLeft = wrapperRect.x - svgRect.x
       const overflowRight = svgRect.x + svgRect.width - (wrapperRect.x + wrapperRect.width)
       const totalOverflow = overflowLeft + overflowRight
-      expect(withinTolerance(totalOverflow, 2 * HORIZONTAL_OVERLAP), `totalOverflow: ${totalOverflow}, expected ~${2 * HORIZONTAL_OVERLAP} ± ${TOLERANCE}`).toBe(true)
-      expect(svgRect.width >= wrapperRect.width + 2 * HORIZONTAL_OVERLAP - TOLERANCE, `svg width ${svgRect.width} should be >= wrapper ${wrapperRect.width} + ${2 * HORIZONTAL_OVERLAP}`).toBe(true)
+      expect(withinTolerance(totalOverflow, 2 * HORIZONTAL_OVERFLOW), `totalOverflow: ${totalOverflow}, expected ~${2 * HORIZONTAL_OVERFLOW} ± ${TOLERANCE}`).toBe(true)
+      expect(svgRect.width >= wrapperRect.width + 2 * HORIZONTAL_OVERFLOW - TOLERANCE, `svg width ${svgRect.width} should be >= wrapper ${wrapperRect.width} + ${2 * HORIZONTAL_OVERFLOW}`).toBe(true)
     })
 
     test('1b. vertical segments (border mode)', async ({ page }) => {
@@ -152,8 +152,8 @@ for (const params of PARAM_SETS) {
       const paddingRight = await wrapper.evaluate((el) => parseFloat(getComputedStyle(el).paddingRight) || 0)
       const marginTop = await wrapper.evaluate((el) => parseFloat(getComputedStyle(el).marginTop) || 0)
       const expectedMarginTop = (params.strokeCount * params.strokeWidth) / 2
-      expect(withinTolerance(paddingLeft, HORIZONTAL_OVERLAP)).toBe(true)
-      expect(withinTolerance(paddingRight, HORIZONTAL_OVERLAP)).toBe(true)
+      expect(withinTolerance(paddingLeft, HORIZONTAL_OVERFLOW)).toBe(true)
+      expect(withinTolerance(paddingRight, HORIZONTAL_OVERFLOW)).toBe(true)
       expect(withinTolerance(marginTop, expectedMarginTop)).toBe(true)
 
       const wrapperRect = await wrapper.boundingBox()
