@@ -122,7 +122,6 @@ const DEFAULTS = {
  *   wrapperStyle: Record<string, unknown>
  *   svgAttributes: { class?: string, viewBox: string, style: string }
  *   paths: Array<{ d: string, stroke: string, 'stroke-width': number, fill: string }>
- *   sectionsPadding: Array<{ top: number, right: number, bottom: number, left: number }>
  * } | null}
  */
 export function serpentineBorder(options) {
@@ -207,18 +206,6 @@ export function serpentineBorder(options) {
   const viewBoxMinY = -STROKE_WIDTH * 2 - TOP_ARC_SHIFT
   const viewBoxStr = `${viewBoxMinX} ${viewBoxMinY} ${totalWidth} ${viewBoxHeight}`
 
-  const n = Y.length - 1
-  const halfBorderWidth = TOTAL_BORDER_WIDTH / 2
-  const insetSide = TOTAL_BORDER_WIDTH - BORDER_EXTRA
-  const sectionsPadding = []
-  for (let i = 0; i < n; i++) {
-    const top = halfBorderWidth
-    const bottom = i === n - 1 ? 0 : halfBorderWidth
-    const left = i % 2 === 0 ? insetSide : 0
-    const right = i % 2 === 0 ? 0 : insetSide
-    sectionsPadding.push({ top, right, bottom, left })
-  }
-
   return {
     wrapperStyle,
     svgAttributes: {
@@ -227,8 +214,38 @@ export function serpentineBorder(options) {
       style: svgStyle,
     },
     paths,
-    sectionsPadding,
   }
+}
+
+/**
+ * Compute padding for each section so content does not overlap the border.
+ * Returns an object with even, odd, and last: use for even-indexed sections, odd-indexed sections, and the last section respectively.
+ *
+ * @param {{
+ *   sectionCount: number
+ *   strokeCount: number
+ *   strokeWidth: number
+ *   horizontalOverflow?: number | 'borderWidth' | 'halfBorderWidth'
+ * }} options
+ * @returns {{ even: { top: number, right: number, bottom: number, left: number }, odd: { top: number, right: number, bottom: number, left: number }, last: { top: number, right: number, bottom: number, left: number } }}
+ */
+export function getSectionsPadding(options) {
+  const { sectionCount: n, strokeCount: N, strokeWidth: STROKE_WIDTH } = options
+  const horizontalOverflow = options.horizontalOverflow ?? 0
+  const TOTAL_BORDER_WIDTH = N * STROKE_WIDTH
+  const BORDER_EXTRA = resolveOverflowToPixels(horizontalOverflow, N, STROKE_WIDTH)
+  const halfBorderWidth = TOTAL_BORDER_WIDTH / 2
+  const insetSide = TOTAL_BORDER_WIDTH - BORDER_EXTRA
+  const even = { top: halfBorderWidth, right: 0, bottom: halfBorderWidth, left: insetSide }
+  const odd = { top: halfBorderWidth, right: insetSide, bottom: halfBorderWidth, left: 0 }
+  const lastIsEven = n > 0 && (n - 1) % 2 === 0
+  const last = {
+    top: halfBorderWidth,
+    right: lastIsEven ? 0 : insetSide,
+    bottom: 0,
+    left: lastIsEven ? insetSide : 0,
+  }
+  return { even, odd, last }
 }
 
 /**

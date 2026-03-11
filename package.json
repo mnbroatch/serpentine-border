@@ -1,6 +1,6 @@
 {
   "name": "serpentine-border",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Multi-stroke serpentine (wavy) border SVG — vanilla JS and React",
   "type": "module",
   "main": "./dist/serpentine-border.cjs",

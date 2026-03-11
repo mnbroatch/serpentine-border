@@ -40,7 +40,21 @@ export interface SerpentineBorderResult {
   wrapperStyle: Record<string, unknown>
   svgAttributes: { class?: string; viewBox: string; style: string }
   paths: Array<{ d: string; stroke: string; 'stroke-width': number; fill: string }>
-  sectionsPadding: SectionPadding[]
 }
+
+export interface GetSectionsPaddingOptions {
+  sectionCount: number
+  strokeCount: number
+  strokeWidth: number
+  horizontalOverflow?: number | 'borderWidth' | 'halfBorderWidth'
+}
+
+export interface SectionsPaddingMap {
+  even: SectionPadding
+  odd: SectionPadding
+  last: SectionPadding
+}
+
+export declare function getSectionsPadding(options: GetSectionsPaddingOptions): SectionsPaddingMap
 
 export declare function serpentineBorder(options: SerpentineBorderOptions): SerpentineBorderResult | null
