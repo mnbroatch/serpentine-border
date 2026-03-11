@@ -6,7 +6,7 @@ function parseParams() {
   const q = new URLSearchParams(window.location.search)
   return {
     layoutMode: q.get('layout') || 'border',
-    horizontalOverflow: Number(q.get('overflow')) || 20,
+    horizontalOverflow: Number(q.get('overflow')) || -100,
     strokeWidth: Number(q.get('strokeWidth')) || 8,
     strokeCount: Number(q.get('strokeCount')) || 5,
     radius: Number(q.get('radius')) || 50,

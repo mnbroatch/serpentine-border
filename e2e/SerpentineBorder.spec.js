@@ -162,7 +162,7 @@ for (const params of PARAM_SETS) {
       expect(withinTolerance(wrapperRect.width, expectedWidth), `wrapper width: ${wrapperRect.width}, expected: ${expectedWidth} ± ${TOLERANCE}`).toBe(true)
     })
 
-    test('5. negative horizontal overflow: border stays horizontally centered (border mode)', async ({ page }) => {
+    test('5. negative horizontal overflow: border centered, vertical size unchanged (border mode)', async ({ page }) => {
       const negativeOverflow = -20
       await page.goto(`${BASE_URL}/?${queryString({ ...params, layoutMode: 'border', horizontalOverflow: negativeOverflow })}`, { waitUntil: 'networkidle' })
       await expect(page.getByTestId('fixture')).toBeVisible()
@@ -176,17 +176,19 @@ for (const params of PARAM_SETS) {
       expect(wrapperRect).toBeTruthy()
       expect(svgRect).toBeTruthy()
 
+      // SVG stays full width so vertical scale is unchanged (no uniform shrink from a narrower SVG)
+      expect(withinTolerance(svgRect.width, wrapperRect.width), `svg should be full width: ${svgRect.width} vs wrapper ${wrapperRect.width}`).toBe(true)
       const gapLeft = svgRect.x - wrapperRect.x
       const gapRight = wrapperRect.x + wrapperRect.width - (svgRect.x + svgRect.width)
-      expect(withinTolerance(gapLeft, -negativeOverflow), `left gap: ${gapLeft}, expected ~${-negativeOverflow}`).toBe(true)
-      expect(withinTolerance(gapRight, -negativeOverflow), `right gap: ${gapRight}, expected ~${-negativeOverflow}`).toBe(true)
-      expect(withinTolerance(gapLeft, gapRight), `border should be centered: gapLeft=${gapLeft}, gapRight=${gapRight}`).toBe(true)
+      expect(withinTolerance(gapLeft, 0), `svg left gap should be 0, got ${gapLeft}`).toBe(true)
+      expect(withinTolerance(gapRight, 0), `svg right gap should be 0, got ${gapRight}`).toBe(true)
 
-      // ViewBox must include the full path so the right side is not cropped (minX = -BORDER_EXTRA for negative overflow)
+      // ViewBox uses full content width (minX=0, width=W) so the path appears inset and is not cropped
       const viewBox = await svg.getAttribute('viewBox')
       expect(viewBox).toBeTruthy()
-      const [minX] = viewBox.split(' ').map(Number)
-      expect(withinTolerance(minX, -negativeOverflow), `viewBox minX should be ${-negativeOverflow} so path is not clipped on the right, got ${minX}`).toBe(true)
+      const [minX, , viewBoxWidth] = viewBox.split(' ').map(Number)
+      expect(withinTolerance(minX, 0), `viewBox minX should be 0 for negative overflow, got ${minX}`).toBe(true)
+      expect(viewBoxWidth > wrapperRect.width, `viewBox width ${viewBoxWidth} should be > wrapper ${wrapperRect.width} so path appears inset`).toBe(true)
     })
   })
 }

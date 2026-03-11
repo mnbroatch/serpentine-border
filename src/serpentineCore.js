@@ -182,9 +182,8 @@ export function serpentineBorder(options) {
       ? {
           position: 'absolute',
           overflow: 'hidden',
-          ...(BORDER_EXTRA > 0
-            ? { width: '100%', left: 0 }
-            : { width: `calc(100% + ${2 * BORDER_EXTRA}px)`, left: -BORDER_EXTRA }),
+          width: '100%',
+          left: 0,
           top: -(TOP_OFFSET + TOP_ARC_SHIFT),
           height: `calc(100% + ${TOP_OFFSET + TOP_ARC_SHIFT}px)`,
         }
@@ -201,19 +200,24 @@ export function serpentineBorder(options) {
   const paths = buildPathD(W, Y, N, R, STROKE_WIDTH, COLORS, TOP_ARC_SHIFT, Y_OFFSET, O_TOTAL, BORDER_EXTRA)
 
   const totalHeight = Y[Y.length - 1] ?? 0
-  const totalWidth = Math.max(1, W + 2 * BORDER_EXTRA)
+  const totalWidth =
+    BORDER_EXTRA < 0 ? Math.max(1, W) : Math.max(1, W + 2 * BORDER_EXTRA)
   const viewBoxHeight = totalHeight + TOP_OFFSET + TOP_ARC_SHIFT
-  const viewBoxMinX = -BORDER_EXTRA
+  const viewBoxMinX = BORDER_EXTRA < 0 ? 0 : -BORDER_EXTRA
   const viewBoxMinY = -STROKE_WIDTH * 2 - TOP_ARC_SHIFT
   const viewBoxStr = `${viewBoxMinX} ${viewBoxMinY} ${totalWidth} ${viewBoxHeight}`
 
+  const svgAttributes = {
+    class: svgClassName,
+    viewBox: viewBoxStr,
+    style: svgStyle,
+  }
+  if (layoutMode === 'border' && BORDER_EXTRA < 0) {
+    svgAttributes.preserveAspectRatio = 'none'
+  }
   return {
     wrapperStyle,
-    svgAttributes: {
-      class: svgClassName,
-      viewBox: viewBoxStr,
-      style: svgStyle,
-    },
+    svgAttributes,
     paths,
   }
 }
