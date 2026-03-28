@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { measureSections, serpentineBorder } from './serpentineCore.js'
 
 function cssStringToStyleObject(css) {
@@ -32,7 +32,7 @@ function SerpentineBorder({
   const wrapperRef = useRef(null)
   const [borderData, setBorderData] = useState(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const wrapper = wrapperRef.current
     if (!wrapper) return
 
