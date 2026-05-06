@@ -57,4 +57,11 @@ export interface SectionsPaddingMap {
 
 export declare function getSectionsPadding(options: GetSectionsPaddingOptions): SectionsPaddingMap
 
+export declare function getWrapperBoxStyle(options?: {
+  strokeCount?: number
+  strokeWidth?: number
+  horizontalOverflow?: number | 'borderWidth' | 'halfBorderWidth'
+  layoutMode?: 'content' | 'border'
+}): Record<string, unknown>
+
 export declare function serpentineBorder(options: SerpentineBorderOptions): SerpentineBorderResult | null

@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef, useState } from 'react'
-import { measureSections, serpentineBorder } from './serpentineCore.js'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { getWrapperBoxStyle, measureSections, serpentineBorder } from './serpentineCore.js'
 
 function cssStringToStyleObject(css) {
   const obj = {}
@@ -20,6 +20,17 @@ function pathAttrsForReact(attrs) {
   )
 }
 
+/** Ignore subpixel / float noise from getBoundingClientRect so ResizeObserver does not thrash setState. */
+function measurementCloseEnough(a, b, eps = 0.75) {
+  if (!a || !b) return false
+  if (Math.abs(a.width - b.width) > eps) return false
+  if (a.sectionBottomYs.length !== b.sectionBottomYs.length) return false
+  for (let i = 0; i < a.sectionBottomYs.length; i++) {
+    if (Math.abs(a.sectionBottomYs[i] - b.sectionBottomYs[i]) > eps) return false
+  }
+  return true
+}
+
 function SerpentineBorder({
   children,
   strokeCount,
@@ -30,9 +41,22 @@ function SerpentineBorder({
   layoutMode,
 }) {
   const wrapperRef = useRef(null)
+  const lastMeasuredRef = useRef(null)
   const [borderData, setBorderData] = useState(null)
 
+  const wrapperStyle = useMemo(
+    () =>
+      getWrapperBoxStyle({
+        strokeCount,
+        strokeWidth,
+        horizontalOverflow,
+        layoutMode,
+      }),
+    [strokeCount, strokeWidth, horizontalOverflow, layoutMode]
+  )
+
   useLayoutEffect(() => {
+    lastMeasuredRef.current = null
     const wrapper = wrapperRef.current
     if (!wrapper) return
 
@@ -44,6 +68,15 @@ function SerpentineBorder({
         strokeWidth,
       })
       if (!measured) return
+
+      const prev = lastMeasuredRef.current
+      if (prev && measurementCloseEnough(prev, measured)) {
+        return
+      }
+      lastMeasuredRef.current = {
+        width: measured.width,
+        sectionBottomYs: [...measured.sectionBottomYs],
+      }
 
       const data = serpentineBorder({
         width: measured.width,
@@ -68,7 +101,7 @@ function SerpentineBorder({
     <div
       ref={wrapperRef}
       className="serpentine-wrapper"
-      style={borderData?.wrapperStyle ?? { position: 'relative', boxSizing: 'border-box' }}
+      style={wrapperStyle}
       data-testid="serpentine-wrapper"
     >
       {borderData && (() => {
@@ -79,6 +112,7 @@ function SerpentineBorder({
             data-testid="serpentine-svg"
             className={className}
             style={style}
+            preserveAspectRatio="none"
             {...restSvgAttrs}
           >
             {borderData.paths.map((pathAttributes, i) => (

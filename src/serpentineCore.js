@@ -102,6 +102,35 @@ const DEFAULTS = {
 }
 
 /**
+ * Wrapper margin/padding that do not depend on measured width or section heights.
+ * Use on first paint so the column does not jump before the SVG paths exist.
+ */
+export function getWrapperBoxStyle(options = {}) {
+  const N = options.strokeCount ?? DEFAULTS.strokeCount
+  const STROKE_WIDTH = options.strokeWidth ?? DEFAULTS.strokeWidth
+  const horizontalOverflow = options.horizontalOverflow ?? DEFAULTS.horizontalOverflow
+  const layoutMode = options.layoutMode ?? DEFAULTS.layoutMode
+  const BORDER_EXTRA = resolveOverflowToPixels(horizontalOverflow, N, STROKE_WIDTH)
+  const TOTAL_BORDER_WIDTH = N * STROKE_WIDTH
+
+  if (layoutMode === 'border') {
+    return {
+      boxSizing: 'border-box',
+      position: 'relative',
+      marginTop: `${TOTAL_BORDER_WIDTH / 2}px`,
+      ...(BORDER_EXTRA > 0 && {
+        paddingLeft: `${BORDER_EXTRA}px`,
+        paddingRight: `${BORDER_EXTRA}px`,
+      }),
+    }
+  }
+  return {
+    position: 'relative',
+    boxSizing: 'border-box',
+  }
+}
+
+/**
  * Compute everything needed to render the serpentine border.
  * Accepts either (width + sectionBottomYs) for pure/custom use, or wrapperEl to measure from the DOM.
  * When using wrapperEl, returns null in non-DOM environments (e.g. SSR) or when measurement fails.
@@ -156,26 +185,16 @@ export function serpentineBorder(options) {
 
   const BORDER_EXTRA = resolveOverflowToPixels(horizontalOverflow, N, STROKE_WIDTH)
   const O_TOTAL = (N - 1) * STROKE_WIDTH
-  const TOTAL_BORDER_WIDTH = N * STROKE_WIDTH
   const TOP_OFFSET = 2 * STROKE_WIDTH
   const Y_OFFSET = O_TOTAL / 2
   const TOP_ARC_SHIFT = ((N - 1) / 2) * STROKE_WIDTH + Y_OFFSET
 
-  const wrapperStyle =
-    layoutMode === 'border'
-      ? {
-          boxSizing: 'border-box',
-          position: 'relative',
-          marginTop: `${TOTAL_BORDER_WIDTH / 2}px`,
-          ...(BORDER_EXTRA > 0 && {
-            paddingLeft: `${BORDER_EXTRA}px`,
-            paddingRight: `${BORDER_EXTRA}px`,
-          }),
-        }
-      : {
-          position: 'relative',
-          boxSizing: 'border-box',
-        }
+  const wrapperStyle = getWrapperBoxStyle({
+    strokeCount: N,
+    strokeWidth: STROKE_WIDTH,
+    horizontalOverflow,
+    layoutMode,
+  })
 
   const svgStyleObj =
     layoutMode === 'border'

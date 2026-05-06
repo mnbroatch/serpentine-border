@@ -1,2 +1,2 @@
 export { default as SerpentineBorder } from './SerpentineBorder.jsx'
-export { getSectionsPadding, serpentineBorder } from './serpentineCore.js'
+export { getSectionsPadding, getWrapperBoxStyle, serpentineBorder } from './serpentineCore.js'
